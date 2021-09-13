@@ -3,21 +3,31 @@ import "./App.css";
 
 import { getAllStudents } from "./client";
 
-import { Table } from "antd";
+import { Avatar, Spin, Table } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
+import Container from "./Container";
+
+const getIndicatorIcon = () => (
+  <LoadingOutlined style={{ fontSize: 24 }} spin />
+);
+
 class App extends React.Component {
   state = {
     students: [],
+    isFetching: false,
   };
 
   componentDidMount() {
     this.fetchAllStudents();
   }
   fetchAllStudents() {
+    this.setState({ isFetching: true });
     getAllStudents().then((res) =>
       res.json().then((students) => {
-        console.log(students);
+        //console.log(students);
         this.setState({
           students: students,
+          isFetching: false,
         });
       })
     );
@@ -25,6 +35,15 @@ class App extends React.Component {
 
   render() {
     const columns = [
+      {
+        title: "",
+        key: "avatar",
+        render: (texxt, student) => (
+          <Avatar size="large">
+            {`${student.firstName.charAt(0)} ${student.lastName.charAt(0)}`}
+          </Avatar>
+        ),
+      },
       {
         title: "Student Id",
         dataIndex: "studentId",
@@ -54,14 +73,23 @@ class App extends React.Component {
     return (
       <>
         <h1>Liste of students from spring api</h1>
-        {this.state.students && this.state.students.length ? (
-          <Table
-            dataSource={this.state.students}
-            columns={columns}
-            rowKey="studentId"
-          />
+        {this.state.isFetching ? (
+          <Container>
+            <Spin indicator={getIndicatorIcon} />
+          </Container>
         ) : (
-          <h3>No students found</h3>
+          <Container>
+            {this.state.students && this.state.students.length ? (
+              <Table
+                dataSource={this.state.students}
+                columns={columns}
+                pagination={false}
+                rowKey="studentId"
+              />
+            ) : (
+              <h3>No students found</h3>
+            )}
+          </Container>
         )}
       </>
     );
